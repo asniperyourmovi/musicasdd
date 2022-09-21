@@ -2,33 +2,74 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-signin-client_id" content="927726762124-hkl5r97e2uofbslb0fdc1u7mno998sor.apps.googleusercontent.com">
-    <title>Sign In With Google Using JavaScript</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
-    <link rel="stylesheet" href="oo.css">
+    <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
 </head>
 
 <body>
-    <h2 class="alert alert-success">Sign-In With Google Using JavaScript</h2>
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>
 
-    <div class="data">
-        <p>Name</p>
-        <p id="name"></p>
-        <p>Image</p>
-        <img id="image" class="rounded-circle" width="100" height="100" />
-        <p>Email</p>
-        <p id="email"></p>
-        <button type="button" class="btn btn-danger" onclick="signOut();">Sign Out</button>
-    </div>
+    
+    <script>
+// Render Google Sign-in button
+function renderButton() {
+    gapi.signin2.render('gSignIn', {
+        'scope': 'profile email',
+        'width': 240,
+        'height': 50,
+        'longtitle': true,
+        'theme': 'dark',
+        'onsuccess': onSuccess,
+        'onfailure': onFailure
+    });
+}
 
-    <script src="oo.js" async defer></script>
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-</body>
+// Sign-in success callback
+function onSuccess(googleUser) {
+    // Get the Google profile data (basic)
+    //var profile = googleUser.getBasicProfile();
+    
+    // Retrieve the Google account data
+    gapi.client.load('oauth2', 'v2', function () {
+        var request = gapi.client.oauth2.userinfo.get({
+            'userId': 'me'
+        });
+        request.execute(function (resp) {
+            // Display the user details
+            var profileHTML = '<h3>Welcome '+resp.given_name+'! <a href="javascript:void(0);" onclick="signOut();">Sign out</a></h3>';
+            profileHTML += '<img src="'+resp.picture+'"/><p><b>Google ID: </b>'+resp.id+'</p><p><b>Name: </b>'+resp.name+'</p><p><b>Email: </b>'+resp.email+'</p><p><b>Gender: </b>'+resp.gender+'</p><p><b>Locale: </b>'+resp.locale+'</p><p><b>Google Profile:</b> <a target="_blank" href="'+resp.link+'">click to view profile</a></p>';
+            document.getElementsByClassName("userContent")[0].innerHTML = profileHTML;
+            
+            document.getElementById("gSignIn").style.display = "none";
+            document.getElementsByClassName("userContent")[0].style.display = "block";
+        });
+    });
+}
 
+// Sign-in failure callback
+function onFailure(error) {
+    alert(error);
+}
+
+// Sign out the user
+function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+        document.getElementsByClassName("userContent")[0].innerHTML = '';
+        document.getElementsByClassName("userContent")[0].style.display = "none";
+        document.getElementById("gSignIn").style.display = "block";
+    });
+    
+    auth2.disconnect();
+}
+</script>
+
+    
+    <!-- Display Google sign-in button -->
+<div id="gSignIn"></div>
+
+<!-- Show the user profile details -->
+<div class="userContent" style="display: none;"></div>
+
+    </body>
+    <script src="https://apis.google.com/js/client:platform.js?onload=renderButton" async defer></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </html>
